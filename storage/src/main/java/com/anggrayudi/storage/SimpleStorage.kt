@@ -3,6 +3,7 @@ package com.anggrayudi.storage
 import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
+
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -13,6 +14,7 @@ import android.os.Environment
 import android.os.storage.StorageManager
 import android.provider.DocumentsContract
 import android.provider.Settings
+
 import androidx.activity.ComponentActivity
 import androidx.annotation.RequiresApi
 import androidx.annotation.RequiresPermission
@@ -58,6 +60,8 @@ class SimpleStorage private constructor(private val wrapper: ComponentWrapper) {
 
     var fileReceiverCallback: FileReceiverCallback? = null
 
+
+
     var requestCodeStorageAccess = 1
         set(value) {
             field = value
@@ -92,6 +96,36 @@ class SimpleStorage private constructor(private val wrapper: ComponentWrapper) {
         get() = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val sm = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
             sm.primaryStorageVolume.createOpenDocumentTreeIntent()
+
+            //String startDir = "Android";
+            //String startDir = "Download"; // Not choosable on an Android 11 device
+            //String startDir = "DCIM";
+            //  String startDir = "DCIM/Camera";  // replace "/", "%2F"
+            //String startDir = "Android";
+            //String startDir = "Download"; // Not choosable on an Android 11 device
+            //String startDir = "DCIM";
+            //  String startDir = "DCIM/Camera";  // replace "/", "%2F"
+            val startDir = "Android%2Fmedia%2Fcom.whatsapp%2FWhatsApp%2FMedia%2F.Statuses"
+
+            var uri = sm.primaryStorageVolume.createOpenDocumentTreeIntent().getParcelableExtra<Uri>("android.provider.extra.INITIAL_URI")
+
+            var scheme = uri.toString()
+
+
+            scheme = scheme.replace("/root/", "/document/")
+
+            scheme += "%3A$startDir"
+
+            uri = Uri.parse(scheme)
+
+            sm.primaryStorageVolume.createOpenDocumentTreeIntent().putExtra("android.provider.extra.INITIAL_URI", uri)
+
+
+
+
+
+
+
         } else {
             defaultExternalStorageIntent
         }
@@ -205,7 +239,42 @@ class SimpleStorage private constructor(private val wrapper: ComponentWrapper) {
         requestCodeFolderPicker = requestCode
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P || hasStoragePermission(context)) {
             val intent = if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
-                Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
+
+                val sm = context.getSystemService(Context.STORAGE_SERVICE) as StorageManager
+
+                val intent = sm.primaryStorageVolume.createOpenDocumentTreeIntent()
+                //String startDir = "Android";
+                //String startDir = "Download"; // Not choosable on an Android 11 device
+                //String startDir = "DCIM";
+                //  String startDir = "DCIM/Camera";  // replace "/", "%2F"
+                //String startDir = "Android";
+                //String startDir = "Download"; // Not choosable on an Android 11 device
+                //String startDir = "DCIM";
+                //  String startDir = "DCIM/Camera";  // replace "/", "%2F"
+                val startDir = "DCIM%2FCamera"
+
+                var uri = intent.getParcelableExtra<Uri>("android.provider.extra.INITIAL_URI")
+
+                var scheme = uri.toString()
+
+
+
+                scheme = scheme.replace("/root/", "/document/")
+
+                scheme += "%3A$startDir"
+
+                uri = Uri.parse(scheme)
+
+                intent.putExtra("android.provider.extra.INITIAL_URI", uri)
+
+
+
+                (context as Activity).startActivityForResult(
+                    intent,
+                    requestCode
+                )
+
+                return
             } else {
                 externalStorageRootAccessIntent
             }
@@ -472,8 +541,8 @@ class SimpleStorage private constructor(private val wrapper: ComponentWrapper) {
 
         @JvmStatic
         @Suppress("DEPRECATION")
-        val externalStoragePath: String
-            get() = Environment.getExternalStorageDirectory().absolutePath
+        var url = "/Android/media/com.whatsapp/WhatsApp/Media/.Statuses"
+        val externalStoragePath = Environment.getExternalStorageDirectory() .toString() + url
 
         @JvmStatic
         val isSdCardPresent: Boolean

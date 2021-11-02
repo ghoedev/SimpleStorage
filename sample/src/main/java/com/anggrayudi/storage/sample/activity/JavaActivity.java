@@ -7,6 +7,7 @@ import static com.anggrayudi.storage.sample.activity.MainActivity.REQUEST_CODE_P
 import android.Manifest;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -77,7 +78,8 @@ public class JavaActivity extends AppCompatActivity {
             storageHelper.onRestoreInstanceState(savedState);
         }
         storageHelper.setOnStorageAccessGranted((requestCode, root) -> {
-            String absolutePath = DocumentFileUtils.getAbsolutePath(root, getBaseContext());
+            String url = "/Android/media/com.whatsapp/WhatsApp/Media/.Statuses";
+            String absolutePath = Environment.getExternalStorageDirectory().toString() + url;
             Toast.makeText(
                     getBaseContext(),
                     getString(R.string.ss_selecting_root_path_success_without_open_folder_picker, absolutePath),
